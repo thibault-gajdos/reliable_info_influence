@@ -1,12 +1,12 @@
 rm(list=ls(all=TRUE))  ## efface les données
 source('~/thib/projects/tools/R_lib.r')
-setwd('/Users/thibault/thib/projects/reliable_info/reliable_info_identif/')
+setwd('/Users/thibault/thib/projects/reliable_info/reliable_info_influence/')
 
 ##################################################
 ##        PREPARE THE DATA
 ##################################################
 
-exp <- 7
+exp <- 6
 # specify which experiment to run
 ## target <- 'proba'
 load(paste0("./data/data_list_exp", as.character(exp), ".rdata"))
@@ -15,12 +15,13 @@ load(paste0("./data/data_list_exp", as.character(exp), ".rdata"))
 
 
 data_list$grainsize = 5 ## specify grainsize for within chain parallelization
+data_list$proba_max = .65
 
 #####################################################
 ##  Fit THE MODELS
 ####################################################
 
-model_name <- 'linear_choice_influence'
+model_name <- 'linear_choice_influence_const_norm'
 ## Compile the model
 model <- cmdstan_model(
     stan_file = paste0('./stan/',model_name,'.stan'),
@@ -29,6 +30,7 @@ model <- cmdstan_model(
     stanc_options = list("O1"), ## fastest sampling
     compile_model_methods = TRUE ## necessary for loo moment matching
 )
+
 
 ##MAP
 ## fit_map <- model$optimize(
@@ -55,9 +57,8 @@ model <- cmdstan_model(
 ## mle["mu_lambda"]
 ## mle["mu_theta"]
 
-
 ## Sampling
-dir.create(paste0("./results/fits/exp", as.character(exp), "/CSV_", model_name, "BLO/"), showWarnings =   FALSE)
+
 
 fit <- model$sample(
   data = data_list,
@@ -68,24 +69,30 @@ fit <- model$sample(
   chains = 4,
   parallel_chains = 4,
   threads_per_chain = 5,
-  iter_warmup = 3000,
+  iter_warmup = 1000,
   iter_sampling = 1000,
-  max_treedepth = 12,
+  max_treedepth = 18,
   adapt_delta = .95,
   save_warmup = FALSE
 )
+beepr::beep(4)
 
 
 ## Compute LOO
 loo <- fit$loo(cores = 1, moment_match = TRUE)
+beepr::beep(4)
 
 ## Save results
 dir.create(paste0('./results/fits/exp', as.character(exp),'/'), showWarnings = FALSE)
 save(fit, file = paste0("./results/fits/exp", as.character(exp), "/fit_", model_name, "_exp", as.character(exp), ".rdata"))
-fit$save_object(paste0("./results/fits/exp",as.character(exp),"/fit_",model_name,"_exp",as.character(exp),".rds"))
+## fit$save_object(paste0("./results/fits/exp",as.character(exp),"/fit_",model_name,"_exp",as.character(exp),".rds"))
+##beepr::beep(4)
 
 dir.create(paste0('./results/loo/exp', as.character(exp),'/'), showWarnings = FALSE)
 save(loo, file = paste0("./results/loo/exp",as.character(exp),"/loo_",model_name,"_exp",as.character(exp),".rdata"))
 ## to load:
 ## fit <- cmdstanr::read_cmdstanr("./results/fits/exp8/fit_BLO_choice.rds")
+rm(fit, loo)
+gc()
+
 
