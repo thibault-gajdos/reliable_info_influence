@@ -137,13 +137,13 @@ functions {
         lp += bernoulli_logit_lpmf(ch == 1 | ev_diff);
 
         // --- Influence report likelihood ---
-        real total_ev_choice = (ch == 1) ? ev_diff : -ev_diff;
-        real sub_ev_choice   = (ch == 1) ? sub_evidence : -sub_evidence;
-        real non_sub_ev_choice = total_ev_choice - sub_ev_choice;
+        real total_ev_choice = (ch == 1) ? ev_diff : -ev_diff; // eg, 50 + 55 + 65
+        real sub_ev_choice   = (ch == 1) ? sub_evidence : -sub_evidence; // eg, 50 if 50 is introspected reliability
+        real non_sub_ev_choice = total_ev_choice - sub_ev_choice; // 50 + 55 + 65 - 50 = 55 + 65 ie, non introspected evidence
 
         real p_with    = inv_logit(total_ev_choice);
         real p_without = inv_logit(non_sub_ev_choice);
-        real delta_p   = p_with - p_without;
+        real delta_p   = p_with - p_without; // 50 + 55 + 65 - (50 + 65) = 50 ie, introspected evidence 
 
         real infl_obs = influence[n, t];
         if (infl_obs > -90) {
