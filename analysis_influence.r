@@ -15,7 +15,7 @@ source('~/thib/projects/tools/R_lib.r')
 setwd('/Users/thibault/thib/projects/reliable_info/reliable_info_influence/')
 source('analysis_influence_tools.r')
 
-exp <- '7'
+exp <- '6'
 
 # ---------------------------------------------------
 ## MODEL SPECIFICATIONS
